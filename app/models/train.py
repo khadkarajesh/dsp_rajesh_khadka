@@ -11,6 +11,13 @@ from sklearn.metrics import mean_squared_log_error
 from app.models.preprocess import fill_unknown, get_column_transformer
 
 
+def save_model(model):
+    path = Path("../../app/models/")
+    file_name = path / 'model.joblib'
+    joblib.dump(model, file_name)
+    return file_name.name
+
+
 def train_model(dataset_path, column_transformer):
     dataframe = pd.read_csv(dataset_path)
     df = dataframe.copy()
@@ -31,13 +38,7 @@ def train_model(dataset_path, column_transformer):
     y_predicted = pipeline.predict(x_test)
     mean_squared_log_error(y_test, y_predicted)
 
-    return {"model_performance": mean_squared_log_error(y_test, y_predicted)}
+    return {"model_performance": mean_squared_log_error(y_test, y_predicted), 'path_to_model': save_model(pipeline)}
 
 
 print(train_model(Path("../../data/house-prices", "train.csv"), get_column_transformer()))
-
-
-def save_model(model):
-    os.environ.get()
-    joblib.dump()
-    pass
