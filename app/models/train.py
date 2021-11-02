@@ -1,14 +1,13 @@
-import os
 from pathlib import Path
 
-import pandas as pd
 import joblib
+import pandas as pd
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import mean_squared_log_error
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import mean_squared_log_error
 
-from app.models.preprocess import fill_unknown, get_column_transformer
+from app.models.preprocess import fill_unknown
 
 
 def save_model(model):
@@ -25,11 +24,12 @@ def train_model(dataset_path, column_transformer):
     categorical_columns = df.select_dtypes(include='object').columns
     df = fill_unknown(categorical_columns, df)
 
-    df.drop('SalePrice', axis=1)
-    X = df
     y = df['SalePrice']
+    df = df.drop('SalePrice', axis=1)
+    X = df
 
     X_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
+    print(X_train.head())
 
     pipeline = Pipeline(
         steps=[("preprocessor", column_transformer), ("model", LogisticRegression())]
@@ -39,6 +39,3 @@ def train_model(dataset_path, column_transformer):
     mean_squared_log_error(y_test, y_predicted)
 
     return {"model_performance": mean_squared_log_error(y_test, y_predicted), 'path_to_model': save_model(pipeline)}
-
-
-print(train_model(Path("../../data/house-prices", "train.csv"), get_column_transformer()))
