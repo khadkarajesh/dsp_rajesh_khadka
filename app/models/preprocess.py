@@ -10,19 +10,19 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 
 
-def get_encoder() -> OneHotEncoder:
-    encoder_path = Path("encoder.joblib")
+def get_encoder(path_to_save_encoder) -> OneHotEncoder:
+    encoder_path = path_to_save_encoder / 'encoder.joblib'
     if encoder_path.exists(): return joblib.load(encoder_path)
     encoder = OneHotEncoder(handle_unknown="ignore")
-    save_encoder(encoder)
+    save_encoder(path_to_save_encoder, encoder)
     return encoder
 
 
-def get_column_transformer() -> ColumnTransformer:
+def get_column_transformer(path_to_save_encoder) -> ColumnTransformer:
     numerical_preprocessor = Pipeline(steps=[('imputer', SimpleImputer()),
                                              ('scaler', MinMaxScaler())])
     categorical_preprocessor = Pipeline(
-        steps=[('encoder', get_encoder())])
+        steps=[('encoder', get_encoder(path_to_save_encoder))])
     column_transformer = ColumnTransformer(
         transformers=[('num', numerical_preprocessor, selector(dtype_exclude="object")),
                       ('cat', categorical_preprocessor, selector(dtype_exclude="int64"))],
@@ -53,6 +53,5 @@ def impute_numerical_value(columns: List, dataframe, **kwargs) -> pd.DataFrame:
     return dataframe
 
 
-def save_encoder(encoder):
-    path = Path("encoder.joblib")
-    joblib.dump(encoder, path)
+def save_encoder(path_to_save_encoder, encoder):
+    joblib.dump(encoder, path_to_save_encoder / 'encoder.joblib')
