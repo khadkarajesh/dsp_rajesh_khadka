@@ -1,19 +1,14 @@
-import os
-
-import numpy as np
 from pathlib import Path
 from typing import List
 
 import joblib
+import numpy as np
 import pandas as pd
-from sklearn.compose import ColumnTransformer
-from sklearn.compose import make_column_selector as selector
 from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import StandardScaler
 
-ENCODER = "encoder.joblib"
+from app.constant import AppConstant
 
 
 def handle_categorical_data(dataframe: pd.DataFrame, model_dir: Path):
@@ -42,16 +37,29 @@ def handle_numerical_data(dataframe: pd.DataFrame):
     columns = get_continuous_columns(dataframe)
     imputed_dataframe = dataframe[columns].copy()
 
-    simple_imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
-    imputed_dataframe[columns] = simple_imputer.fit_transform(imputed_dataframe[columns])
+    imputed_dataframe = impute_numerical_value(columns, imputed_dataframe)
+    scaled_dataframe = scale_numerical_data(columns, imputed_dataframe)
 
+    return scaled_dataframe
+
+
+def scale_numerical_data(columns, imputed_dataframe):
     scalar = StandardScaler()
     imputed_dataframe[columns] = scalar.fit_transform(imputed_dataframe[columns])
+    return imputed_dataframe
 
+
+def impute_numerical_value(columns, imputed_dataframe):
+    simple_imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
+    imputed_dataframe[columns] = simple_imputer.fit_transform(imputed_dataframe[columns])
     return imputed_dataframe
 
 
 def preprocess(X: pd.DataFrame, model_dir: Path) -> pd.DataFrame:
+    columns_to_drop = ['Id', 'SalePrice']
+    X.drop([column_to_drop for column_to_drop in columns_to_drop if column_to_drop in X.columns],
+           inplace=True,
+           axis=1)
     numerical_dataframe = handle_numerical_data(dataframe=X)
     categorical_dataframe = handle_categorical_data(dataframe=X, model_dir=model_dir)
     merged_dataframe = numerical_dataframe.join(categorical_dataframe)
@@ -59,23 +67,11 @@ def preprocess(X: pd.DataFrame, model_dir: Path) -> pd.DataFrame:
 
 
 def get_encoder(model_dir: Path) -> OneHotEncoder:
-    encoder_path = Path(model_dir / ENCODER)
+    encoder_path = Path(model_dir / AppConstant.ENCODER_NAME)
     if encoder_path.exists(): return joblib.load(encoder_path)
     encoder = OneHotEncoder(handle_unknown='ignore', dtype=int, sparse=True)
-    joblib.dump(encoder, model_dir / ENCODER)
+    joblib.dump(encoder, model_dir / AppConstant.ENCODER_NAME)
     return encoder
-
-
-def get_column_transformer(path_to_save_encoder) -> ColumnTransformer:
-    numerical_preprocessor = Pipeline(steps=[('imputer', SimpleImputer()),
-                                             ('scaler', MinMaxScaler())])
-    categorical_preprocessor = Pipeline(
-        steps=[('encoder', get_encoder(path_to_save_encoder))])
-    column_transformer = ColumnTransformer(
-        transformers=[('num', numerical_preprocessor, selector(dtype_exclude="object")),
-                      ('cat', categorical_preprocessor, selector(dtype_exclude="int64"))],
-        remainder='passthrough')
-    return column_transformer
 
 
 def fill_unknown(columns: List, dataframe) -> pd.DataFrame:
@@ -87,15 +83,4 @@ def fill_unknown(columns: List, dataframe) -> pd.DataFrame:
 def fill_with_most_frequent(columns: List, dataframe) -> pd.DataFrame:
     for column in columns:
         dataframe[column].fillna(dataframe.value_counts().index[0])
-    return dataframe
-
-
-def impute_numerical_value(columns: List, dataframe, **kwargs) -> pd.DataFrame:
-    value = 0
-    for column in columns:
-        if kwargs.get('type') == 'mean':
-            value = dataframe[column].mean()
-        elif kwargs.get('type') == 'median':
-            value = dataframe[column].median()
-        dataframe[column].fillna(value)
     return dataframe

@@ -1,8 +1,13 @@
+from pathlib import Path
+
 import joblib
 import numpy as np
-import pandas as pd
+
+from app.constant import AppConstant
+from app.models.preprocess import preprocess
 
 
-def predict(data_frame: pd.DataFrame, data_filepath: str = None) -> np.ndarray:
-    pipeline = joblib.load(data_filepath)
-    return pipeline.predict(data_frame)
+def predict(dataframe: str = None, model_dir: Path = None) -> np.ndarray:
+    processed_data = preprocess(dataframe, model_dir)
+    model = joblib.load(model_dir / AppConstant.MODEL_NAME)
+    return model.predict(processed_data)

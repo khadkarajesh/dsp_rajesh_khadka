@@ -1,11 +1,9 @@
 import os
 from pathlib import Path
-import pandas as pd
 
-from app.models.inference import predict
 from dotenv import load_dotenv
 
-from app.models.preprocess import get_column_transformer, preprocess
+from app.models.inference import predict
 from app.models.train import train_model
 
 load_dotenv('.env')
@@ -17,4 +15,5 @@ load_dotenv('.env')
 # # predict model
 # predict(pd.read_csv(Path(os.environ.get('DATA_PATH'), 'test.csv')), model_path / 'model.joblib')
 
-preprocess(pd.read_csv(Path(os.environ.get('DATA_PATH'), 'train.csv')), Path("app/models"))
+print(train_model("data/house-prices/train.csv", Path("app/models")))
+# print(predict(Path(os.environ.get('DATA_PATH'), 'train.csv'), Path("app/models")))
