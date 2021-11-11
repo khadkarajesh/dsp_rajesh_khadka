@@ -11,19 +11,19 @@ from app.inference import predict
 from app.preprocess import preprocess
 
 
-def save_model(model, model_dir):
+def __save_model(model, model_dir):
     file_name = model_dir / AppConstant.MODEL_NAME
     joblib.dump(model, file_name)
     return file_name.name
 
 
 def train_model(training_data_filepath: str, model_dir):
-    x_train, x_test, y_test, y_train = spilit_data(model_dir, training_data_filepath)
+    x_train, x_test, y_test, y_train = __split_data(model_dir, training_data_filepath)
 
     model = LogisticRegression()
     model.fit(x_train, y_train)
 
-    model_path = save_model(model, model_dir)
+    model_path = __save_model(model, model_dir)
 
     y_predicted = predict(x_test, model_dir)
 
@@ -31,7 +31,7 @@ def train_model(training_data_filepath: str, model_dir):
             'path_to_model': str(model_dir / model_path)}
 
 
-def spilit_data(model_dir, training_data_filepath):
+def __split_data(model_dir, training_data_filepath):
     dataframe = pd.read_csv(Path(training_data_filepath))
     df = dataframe.copy()
     y = df['SalePrice']
