@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import joblib
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import mean_squared_log_error
@@ -9,11 +8,12 @@ from sklearn.model_selection import train_test_split
 from app.constant import AppConstant
 from app.inference import predict
 from app.preprocess import preprocess
+from app.utils import save_file
 
 
 def __save_model(model, model_dir):
     file_name = model_dir / AppConstant.MODEL_NAME
-    joblib.dump(model, file_name)
+    save_file(model, file_name)
     return file_name.name
 
 

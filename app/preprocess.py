@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import List
 
-import joblib
 import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
@@ -9,6 +8,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import StandardScaler
 
 from app.constant import AppConstant
+from app.utils import save_file, get_file
 
 
 def __handle_categorical_data(dataframe: pd.DataFrame, model_dir: Path):
@@ -68,9 +68,9 @@ def preprocess(X: pd.DataFrame, model_dir: Path) -> pd.DataFrame:
 
 def __get_encoder(model_dir: Path) -> OneHotEncoder:
     encoder_path = Path(model_dir / AppConstant.ENCODER_NAME)
-    if encoder_path.exists(): return joblib.load(encoder_path)
+    if encoder_path.exists(): return get_file(encoder_path)
     encoder = OneHotEncoder(handle_unknown='ignore', dtype=int, sparse=True)
-    joblib.dump(encoder, model_dir / AppConstant.ENCODER_NAME)
+    save_file(encoder, model_dir / AppConstant.ENCODER_NAME)
     return encoder
 
 
