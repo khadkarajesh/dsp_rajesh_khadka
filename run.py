@@ -1,10 +1,8 @@
-import os
 from pathlib import Path
 
 from dotenv import load_dotenv
 
-from app.models.inference import predict
-from app.models.train import train_model
+from app.train import train_model
 
 load_dotenv('.env')
 

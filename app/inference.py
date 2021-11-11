@@ -4,7 +4,7 @@ import joblib
 import numpy as np
 
 from app.constant import AppConstant
-from app.models.preprocess import preprocess
+from app.preprocess import preprocess
 
 
 def predict(dataframe: str = None, model_dir: Path = None) -> np.ndarray:

@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import joblib
@@ -8,8 +7,8 @@ from sklearn.metrics import mean_squared_log_error
 from sklearn.model_selection import train_test_split
 
 from app.constant import AppConstant
-from app.models.inference import predict
-from app.models.preprocess import preprocess
+from app.inference import predict
+from app.preprocess import preprocess
 
 
 def save_model(model, model_dir):
